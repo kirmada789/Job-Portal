@@ -43,7 +43,7 @@ async function registerUser(req, res) {
             await SeekerProfileSchema.create({ userId: user._id });
         } else if (role === "recruiter") {
             await RecruiterProfile.create({
-                userId: user.id,
+                userId: user._id, // 👈 Yahan user.id ko user._id kar diya hai
                 companyName: companyName || "Not specified"
             });
         }
