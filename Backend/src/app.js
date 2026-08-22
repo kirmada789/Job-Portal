@@ -13,20 +13,25 @@ const cors = require("cors");
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true // yeh sabse important hai tki frontend se cookies browser mein store ho sake
+    origin: [
+        "https://theejobportal.netlify.app", 
+        "http://localhost:5173", 
+        "http://localhost:3000"
+    ],
+    credentials: true // Cookies (JWT) ke liye zaroori hai
 }));
-
 
 app.use(session({
     secret: process.env.SESSION_SECRET || "someSecretKey",
     resave: false,
     saveUninitialized: false
-}))
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieParser());
 app.use(express.json());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/application", applicationRoutes);
@@ -35,6 +40,5 @@ app.use("/api/admin", adminRoutes);
 app.use("/uploads", express.static("uploads"));
 
 app.use(errorHandler);
-
 
 module.exports = app;
