@@ -16,10 +16,10 @@ const generateToken = (id) => {
 }
 
 const cookieOption = {
-    expires: new Date(Date.now() +30 * 24 * 60 * 60 * 1000),
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict"
+    secure: true,      // Render (HTTPS) ke liye zaroori hai
+    sameSite: "none"   // Netlify (Frontend) aur Render (Backend) cross-domain ke liye zaroori hai
 };
 
 
@@ -203,6 +203,8 @@ async function logout(req, res) {
     try {
         res.status(200).cookie("token", "", {
             httpOnly: true,
+            secure: true,
+            sameSite: "none",
             expires: new Date(0)
         }).json({
             success: true,
@@ -234,7 +236,7 @@ async function forgotPassword(req, res) {
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
 
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetUrl = `https://theejobportal.netlify.app/reset-password/${resetToken}`;
         const message = `You are receiving this email because you have requested a password reset.\n\nPlease make a Put request to:\n\n${resetUrl}`;
 
         try {
@@ -288,7 +290,6 @@ async function resetPassword(req, res) {
             });
         }
 
-        // Schema pre-save hook handles the hashing automatically; direct assignment prevents double hashing
         user.password = password;
 
         user.resetPasswordToken = undefined;
