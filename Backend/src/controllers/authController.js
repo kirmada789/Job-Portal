@@ -115,17 +115,13 @@ async function googleAuth(req, res) {
             return res.status(400).json({ success: false, message: "Google token is missing" });
         }
 
-        // Google endpoint se token verify karein with safe error catching
-        let googleRes;
-        try {
-            googleRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo`, {
-                params: { id_token: token }
-            });
-        } catch (err) {
-            console.error("Google Tokeninfo API Error:", err.response?.data || err.message);
-            return res.status(400).json({ success: false, message: "Invalid or expired Google token" });
-        }
-
+        // Google ke userinfo endpoint se access token ke zariye user details fetch karein
+        const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        
         const { email, name } = googleRes.data;
 
         if (!email) {
@@ -170,10 +166,10 @@ async function googleAuth(req, res) {
         });
 
     } catch (error) {
-        console.error("GOOGLE AUTH ERROR DETAILS:", error.message);
+        console.error("GOOGLE AUTH ERROR DETAILS:", error.response?.data || error.message);
         return res.status(500).json({
             success: false,
-            message: error.message || "Google authentication failed"
+            message: error.response?.data?.error_description || error.message || "Google authentication failed"
         });
     }
 }
