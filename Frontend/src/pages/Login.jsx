@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, ChevronDown } from 'lucide-react';
-import axios from 'axios';
+import API from '../utils/api'; // 👈 Ab sahi API instance import kar liya hai
 import { GoogleLogin } from '@react-oauth/google';
-
-// Axios global configuration taaki cookies properly save ho sakein
-axios.defaults.withCredentials = true;
 
 function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -48,7 +45,8 @@ function Login({ onLogin }) {
         role: formData.role.toLowerCase()
       };
 
-      const response = await axios.post("http://localhost:8000/api/auth/login", payload);
+      // ✅ Ab yeh Render backend par request bhejega
+      const response = await API.post("/auth/login", payload);
 
       if (response.data.success) {
         const loggedInUser = response.data.user || response.data || payload;
@@ -56,7 +54,6 @@ function Login({ onLogin }) {
 
         alert("Login Successful!");
 
-        // Role-based redirection logic
         const userRole = (response.data.role || response.data.user?.role || formData.role).toLowerCase();
         
         if (userRole === 'admin') {
@@ -75,7 +72,7 @@ function Login({ onLogin }) {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8000/api/auth/forget-password", {
+      const response = await API.post("/auth/forget-password", {
         email: forgotEmail
       });
       if (response.data.success) {
@@ -225,7 +222,8 @@ function Login({ onLogin }) {
                   onSuccess={async (credentialResponse) => {
                     try {
                       const token = credentialResponse.credential;
-                      const response = await axios.post("http://localhost:8000/api/auth/google", {
+                      // ✅ Google Auth ab API instance use karega
+                      const response = await API.post("/auth/google", {
                         token: token,
                         role: formData.role.toLowerCase()
                       });

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../utils/api'; // 👈 Sahi API instance import kiya
 
 const Resume = () => {
   const navigate = useNavigate();
@@ -21,7 +21,6 @@ const Resume = () => {
     return () => observer.disconnect();
   }, []);
 
-  // API Call function for uploading resume with correct endpoint (/api/seeker)
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -30,9 +29,8 @@ const Resume = () => {
       const formData = new FormData();
       formData.append("resume", file);
 
-      const response = await axios.post("http://localhost:8000/api/seeker/resume", formData, {
-        withCredentials: true // Cookie / JWT token bhejne ke liye zaroori hai
-      });
+      // ✅ Ab yeh Render backend par request bhejega aur cookies attach karega
+      const response = await API.post("/seeker/resume", formData);
 
       alert(response.data.message || "Resume uploaded successfully!");
     } catch (error) {
@@ -53,7 +51,6 @@ const Resume = () => {
   return (
     <div style={{ paddingTop: "2rem" }}>
       
-      {/* Scroll fade animation style */}
       <style>{`
         .scroll-fade {
           opacity: 0;
@@ -67,7 +64,6 @@ const Resume = () => {
         }
       `}</style>
 
-      {/* Hidden file input */}
       <input 
         type="file" 
         ref={fileInputRef} 
