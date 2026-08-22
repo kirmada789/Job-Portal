@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Briefcase, ChevronDown } from 'lucide-react';
-import axios from 'axios';
+import API from '../utils/api'; // 👈 Apne api.js ka sahi path check kar lena (jaise ../services/api ya ./api)
 import { GoogleLogin } from '@react-oauth/google';
-
-// Axios global configuration taaki cookies properly save ho sakein
-axios.defaults.withCredentials = true;
 
 function Register({ onLogin }) {
   const navigate = useNavigate();
@@ -54,12 +51,11 @@ function Register({ onLogin }) {
         role: formData.role.toLowerCase()
       };
 
-      const response = await axios.post("http://localhost:8000/api/auth/signup", payload);
+      // ✅ Ab yeh Netlify env variable ya Render URL use karega
+      const response = await API.post("/auth/signup", payload);
 
       if (response.data.success) {
         alert("Registered successfully! Please login with your credentials.");
-
-        // Redirection to /login page
         navigate('/login');
       }
     } catch (error) {
@@ -70,7 +66,6 @@ function Register({ onLogin }) {
   return (
     <div className="flex min-h-[82vh] items-center justify-center py-8">
       
-      {/* Ultra-slow and buttery-smooth reveal styles */}
       <style>{`
         .scroll-fade {
           opacity: 0;
@@ -225,7 +220,8 @@ function Register({ onLogin }) {
                 onSuccess={async (credentialResponse) => {
                   try {
                     const token = credentialResponse.credential;
-                    const response = await axios.post("http://localhost:8000/api/auth/google", {
+                    // ✅ Google Auth bhi ab API instance use karega
+                    const response = await API.post("/auth/google", {
                       token: token,
                       role: formData.role.toLowerCase()
                     });

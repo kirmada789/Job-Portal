@@ -1,8 +1,9 @@
-import axios from 'axios';
+import axios from "axios";
 
-const api = axios.create({
-  baseURL: "https://job-portal-v23h.onrender.com/api",
-  withCredentials: true, // Cookies (JWT) ke liye zaroori hai
+// Environment variable ya fallback ke taur par live render URL
+const API = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || "https://job-portal-v23h.onrender.com/api",
+    withCredentials: true
 });
 
-export default api;
+export default API;
