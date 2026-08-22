@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: "https://job-portal-v23h.onrender.com/api",
   withCredentials: true, // Cookies (JWT) ke liye zaroori hai
 });
 
