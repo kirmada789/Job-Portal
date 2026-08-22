@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@keyframes scrollRightToLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+@keyframes smoothReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal {
+  animation: smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
