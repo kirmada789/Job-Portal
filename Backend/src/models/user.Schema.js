@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: function () {
-        return !this.googleID; // Agar googleId nahi hai (matlab normal signup), tabhi password zaroori hai
+        return !this.googleID;
       },
     },
     role: {
@@ -26,7 +26,6 @@ const userSchema = new mongoose.Schema(
       default: "seeker",
       required: true,
     },
-    // Recruiter / Profile Extra Fields (Optional, safe for existing users)
     phone: {
       type: String,
       default: "",
@@ -51,11 +50,11 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+// 👈 Yahan 'next' hata diya hai kyunki async function bina next ke chalta hai
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 const User = mongoose.model("User", userSchema);
