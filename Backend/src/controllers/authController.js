@@ -115,11 +115,9 @@ async function googleAuth(req, res) {
             return res.status(400).json({ success: false, message: "Google token is missing" });
         }
 
-        // Google ke userinfo endpoint se access token ke zariye user details fetch karein
-        const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+        // Google tokeninfo endpoint se ID Token verify karein
+        const googleRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo`, {
+            params: { id_token: token }
         });
         
         const { email, name } = googleRes.data;
