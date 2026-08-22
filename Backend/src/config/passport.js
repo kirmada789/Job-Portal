@@ -5,14 +5,15 @@ const User = require("../models/user.Schema");
 passport.use(
     new GoogleStrategy(
         {
-            clientID : process.env.GOOGLE_CLIENT_ID,
+            clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL : "/api/auth/google/callback"
+            callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://job-portal-v23h.onrender.com/api/auth/google/callback",
+            proxy: true // Render jaise platforms ke liye yeh sabse zaroori hai!
         },
-        async (accesToken, refreshToken, profile, done) => {
+        async (accessToken, refreshToken, profile, done) => {
             try {
                 let user = await User.findOne({
-                    email:profile.emails[0].value
+                    email: profile.emails[0].value
                 });
 
                 if (user) {
@@ -23,7 +24,7 @@ passport.use(
                     name: profile.displayName,
                     email: profile.emails[0].value,
                     googleId: profile.id,
-                    password: Math.random().toString(36).slice(-8), // Ek random dummy password
+                    password: Math.random().toString(36).slice(-8),
                     role: "seeker"
                 });
 
@@ -31,7 +32,6 @@ passport.use(
             } catch (error) {
                 done(error, null);
             }
-            
         }
     )
 );
@@ -45,7 +45,8 @@ passport.deserializeUser(async (id, done) => {
         const user = await User.findById(id);
         done(null, user);
     } catch (error) {
-        done(error, null)
+        done(error, null);
     }
-    
-})
+});
+
+module.exports = passport;
