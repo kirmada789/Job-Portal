@@ -106,7 +106,7 @@ async function loginUser(req, res) {
     }
 }
 
-// Naya Google Auth Handler function for Frontend Token
+// Google Auth Handler function for Frontend Token
 async function googleAuth(req, res) {
     try {
         const { token, role } = req.body;
@@ -161,9 +161,11 @@ async function googleAuth(req, res) {
         });
 
     } catch (error) {
+        // 👈 Detailed error logging add kar di hai Render logs ke liye
+        console.error("GOOGLE AUTH ERROR:", error.response?.data || error.message);
         res.status(500).json({
             success: false,
-            message: error.message || "Google authentication failed"
+            message: error.response?.data?.error_description || error.message || "Google authentication failed"
         });
     }
 }
