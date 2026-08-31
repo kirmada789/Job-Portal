@@ -15,10 +15,12 @@ const app = express();
 app.use(cors({
     origin: [
         "https://theejobportal.netlify.app", 
+        "https://frontend-ks0lfo1vr-skillhub0260-6584.vercel.app", // 👈 Yahan daal diya tumhara exact Vercel link
         "http://localhost:5173", 
         "http://localhost:3000"
     ],
-    credentials: true // Cookies (JWT) ke liye zaroori hai
+    credentials: true, // Cookies (JWT) ke liye zaroori hai
+    allowedHeaders: ["Content-Type", "Authorization"] // Bearer token header allow karne ke liye
 }));
 
 app.use(session({

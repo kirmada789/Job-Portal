@@ -1,6 +1,7 @@
 const Application = require("../models/Application.Schema");
-const Job = require("../models/Job.Schema"); // Job model required to fetch recruiter ID
-const Notification = require("../models/notification.Schema"); // Notification model
+const Job = require("../models/Job.Schema"); 
+const Notification = require("../models/notification.Schema"); 
+const Profile = require("../models/profile.Schema"); 
 const sendEmail = require("../utils/sendEmail");
 
 // Apply for job
@@ -27,7 +28,6 @@ async function applyForJob(req, res) {
             });
         }
 
-        // Job fetch karo taaki pata chale kis recruiter (postedBy) ne job post ki hai
         const job = await Job.findById(jobId);
         if (!job) {
             return res.status(404).json({
@@ -44,12 +44,11 @@ async function applyForJob(req, res) {
 
         await newApplication.save();
 
-        // 🔔 Recruiter ke liye Notification create karne ka logic
         try {
             if (job.postedBy) {
                 await Notification.create({
-                    recipient: job.postedBy, // Recruiter ID jo job post kiya hai
-                    sender: userId,          // Seeker ID jisne apply kiya
+                    recipient: job.postedBy, 
+                    sender: userId,          
                     message: `A candidate applied for your job: ${job.title}`,
                     jobId: jobId
                 });
@@ -71,15 +70,48 @@ async function applyForJob(req, res) {
     }
 }
 
-// Get applications for jobs 
+// Get applications for jobs (Experience, Education aur Dynamic Resume URL ke sath)
 async function getJobApplications(req, res) {
     try {
-        const application = await Application.find({
+        // Yeh automatically current server ka protocol aur host (domain/port) utha lega (Deployment ke liye safe hai)
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+        const applications = await Application.find({
             job: req.params.jobId
         }).populate("application", "name email");
+
+        const detailedApplications = await Promise.all(
+            applications.map(async (app) => {
+                const userId = app.application?._id || app.application;
+                
+                // Seeker ki profile Profile collection se fetch kar rahe hain
+                const seekerProfile = await Profile.findOne({ userId });
+                
+                const rawResumeUrl = seekerProfile?.resume?.url || '';
+                // Agar resume url relative hai toh backend ka domain/host jod do
+                const finalResumeUrl = rawResumeUrl 
+                    ? (rawResumeUrl.startsWith('http') ? rawResumeUrl : `${baseUrl}${rawResumeUrl}`) 
+                    : '';
+
+                const appObj = app.toObject();
+                return {
+                    ...appObj,
+                    applicantName: app.application?.name || 'Candidate',
+                    email: app.application?.email || 'No email provided',
+                    phone: seekerProfile?.phone || 'Not provided',
+                    bio: seekerProfile?.bio || 'No bio provided',
+                    skills: seekerProfile?.skills || [],
+                    experience: seekerProfile?.experience || [], // 👈 Experience include kiya
+                    education: seekerProfile?.education || [],   // 👈 Education include kiya
+                    resume: finalResumeUrl
+                };
+            })
+        );
+
         res.status(200).json({
             success: true,
-            application
+            application: detailedApplications,
+            applications: detailedApplications
         });
     } catch (error) {
         res.status(500).json({
@@ -94,7 +126,7 @@ async function getSeekerApplications(req, res) {
     try {
         const applications = await Application.find({
             application: req.params.userId
-        }).populate("job"); // Isse job ki saari details bhi sath mein mil jayengi
+        }).populate("job"); 
         
         res.status(200).json({
             success: true,

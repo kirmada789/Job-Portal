@@ -18,45 +18,65 @@ const generateToken = (id) => {
 const cookieOption = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: true,      // Render (HTTPS) ke liye zaroori hai
-    sameSite: "none"   // Netlify (Frontend) aur Render (Backend) cross-domain ke liye zaroori hai
+    secure: true,      
+    sameSite: "none"   
 };
 
+// 1. REGISTER USER (Plain password bhejo, Mongoose schema khud pre-save hook se hash karega)
 async function registerUser(req, res) {
     try {
         const { name, email, password, role, companyName } = req.body;
 
-        const userAlreadyExists = await User.findOne({ email });
+        let user = await User.findOne({ email });
 
-        if (userAlreadyExists) {
+        if (user && user.isVerified) {
             return res.status(400).json({
                 success: false,
-                message: "User Already Exists"
+                message: "User Already Exists and Verified"
             });
         }
-        
-        const user = await User.create({
-            name, email, password, role
+
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpireDate = Date.now() + 10 * 60 * 1000;
+
+        if (!user) {
+            user = await User.create({
+                name, 
+                email, 
+                password: password, // 👈 Plain password (Schema hash kar dega)
+                role,
+                isVerified: false,
+                otp: otpCode,
+                otpExpire: otpExpireDate
+            });
+
+            if (role === "seeker") {
+                await SeekerProfileSchema.create({ userId: user._id });
+            } else if (role === "recruiter") {
+                await RecruiterProfile.create({
+                    userId: user._id,
+                    companyName: companyName || "Not specified"
+                });
+            }
+        } else {
+            user.name = name;
+            user.password = password; // 👈 Plain password update (Schema hash kar dega on save)
+            user.role = role;
+            user.otp = otpCode;
+            user.otpExpire = otpExpireDate;
+            await user.save();
+        }
+
+        await sendEmail({
+            email: user.email,
+            subject: "Account Verification OTP - JobPortal Nexus",
+            message: `Hello ${name},\n\nYour OTP for account verification is: ${otpCode}\nThis OTP is valid for 10 minutes.\n\nRegards,\nJobPortal Nexus`
         });
 
-        if (role === "seeker") {
-            await SeekerProfileSchema.create({ userId: user._id });
-        } else if (role === "recruiter") {
-            await RecruiterProfile.create({
-                userId: user._id, // 👈 Yahan user.id ko user._id kar diya hai
-                companyName: companyName || "Not specified"
-            });
-        }
-
-        const token = generateToken(user._id);
-
-        return res.status(201).cookie("token", token, cookieOption).json({
+        return res.status(200).json({
             success: true,
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            token
+            message: "OTP sent to your email. Please verify to complete registration.",
+            email: user.email
         });
 
     } catch (error) {
@@ -68,6 +88,42 @@ async function registerUser(req, res) {
     }
 }
 
+// 2. VERIFY OTP (Account verify karega, direct token nahi dega)
+async function verifyOtp(req, res) {
+    try {
+        const { email, otp } = req.body;
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: "User not found" });
+        }
+
+        if (user.isVerified) {
+            return res.status(400).json({ success: false, message: "User is already verified" });
+        }
+
+        if (user.otp !== otp || user.otpExpire < Date.now()) {
+            return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+        }
+
+        user.isVerified = true;
+        user.otp = undefined;
+        user.otpExpire = undefined;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Email verified successfully! Please login with your credentials."
+        });
+
+    } catch (error) {
+        console.error("VERIFY OTP ERROR:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+// 3. LOGIN USER (Check karega ki verified hai ya nahi)
 async function loginUser(req, res) {
     try {
         const { email, password } = req.body;
@@ -78,6 +134,20 @@ async function loginUser(req, res) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid Email or Password"
+            });
+        }
+
+        if (!user.isVerified) {
+            return res.status(403).json({
+                success: false,
+                message: "Please verify your email with OTP first before logging in."
+            });
+        }
+
+        if (user.status === "blocked") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been blocked by the admin."
             });
         }
 
@@ -115,7 +185,6 @@ async function googleAuth(req, res) {
             return res.status(400).json({ success: false, message: "Google token is missing" });
         }
 
-        // Google tokeninfo endpoint se ID Token verify karein
         const googleRes = await axios.get(`https://oauth2.googleapis.com/tokeninfo`, {
             params: { id_token: token }
         });
@@ -128,6 +197,13 @@ async function googleAuth(req, res) {
 
         let user = await User.findOne({ email });
 
+        if (user && user.status === "blocked") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been blocked by the admin."
+            });
+        }
+
         if (!user) {
             const randomPassword = crypto.randomBytes(16).toString("hex");
             const salt = await bcrypt.genSalt(10);
@@ -139,7 +215,8 @@ async function googleAuth(req, res) {
                 name: name || "Google User",
                 email,
                 password: hashedPassword,
-                role: assignedRole
+                role: assignedRole,
+                isVerified: true 
             });
 
             if (assignedRole === "seeker") {
@@ -178,6 +255,13 @@ async function googleCallback(req, res) {
             return res.status(401).json({
                 success: false,
                 message: "Google authentication failed"
+            });
+        }
+
+        if (req.user.status === "blocked") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been blocked by the admin."
             });
         }
 
@@ -241,7 +325,9 @@ async function forgotPassword(req, res) {
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
 
-        const resetUrl = `https://theejobportal.netlify.app/reset-password/${resetToken}`;
+        // 👈 Yahan Netlify URL ki jagah Vercel URL ya environment variable kar diya hai
+        const frontendUrl = process.env.FRONTEND_URL || "https://frontend-ks0lfo1vr-skillhub0260-6584.vercel.app";
+        const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
         const message = `You are receiving this email because you have requested a password reset.\n\nPlease make a Put request to:\n\n${resetUrl}`;
 
         try {
@@ -314,6 +400,7 @@ async function resetPassword(req, res) {
 
 module.exports = {
     registerUser,
+    verifyOtp,
     loginUser,
     googleAuth,
     googleCallback,

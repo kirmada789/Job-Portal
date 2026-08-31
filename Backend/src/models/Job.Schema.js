@@ -32,6 +32,11 @@ const jobSchema = new mongoose.Schema({
         type: String,
         default: "Mid Level"
     },
+    status: {
+        type: String,
+        enum: ["active", "closed"], // 👈 Admin dwara job active/close manage karne ke liye
+        default: "active"
+    },
     skills: {
         type: [String],
         default: []

@@ -22,9 +22,25 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["seeker", "recruiter"],
+      enum: ["seeker", "recruiter", "admin"],
       default: "seeker",
       required: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "blocked"],
+      default: "active",
+    },
+    // 👇 Naye OTP aur Verification fields add kar diye gaye hain
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+    },
+    otpExpire: {
+      type: Date,
     },
     phone: {
       type: String,
@@ -50,7 +66,6 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-// 👈 Yahan 'next' hata diya hai kyunki async function bina next ke chalta hai
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);

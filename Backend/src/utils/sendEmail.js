@@ -1,19 +1,17 @@
 const nodemailer = require("nodemailer");
 
 async function sendEmail(options) {
-    // Transporter create karo using Gmail OAuth2
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
             type: "OAuth2",
             user: process.env.EMAIL_USER,
-            clientId: process.env.CLIENT_ID,
-            clientSecret: process.env.CLIENT_SECRET,
+            clientId: process.env.GOOGLE_CLIENT_ID,       // 👈 Yahan GOOGLE_CLIENT_ID kar diya
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET, // 👈 Yahan GOOGLE_CLIENT_SECRET kar diya
             refreshToken: process.env.REFRESH_TOKEN,
         }
     });
     
-    // Email option define karo
     const mailOptions = {
         from: `"JobNetic Job Portal" <${process.env.EMAIL_USER}>`,
         to: options.email,
@@ -21,7 +19,6 @@ async function sendEmail(options) {
         text: options.message
     };
 
-    // Email send karo
     await transporter.sendMail(mailOptions);
 }
 

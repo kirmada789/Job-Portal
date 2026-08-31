@@ -1,10 +1,15 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.Schema");
 
-// Token check karne ka middleware
+// Token check karne ka middleware (Ab ye Cookie aur Header dono check karega)
 const protect = async (req, res, next) => {
     try {
-        const token = req.cookies.token;
+        let token = req.cookies?.token;
+
+        // Agar cookie nahi hai, toh Authorization Header check karega (Bearer token)
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+            token = req.headers.authorization.split(" ")[1];
+        }
 
         if (!token) {
             return res.status(401).json({
@@ -14,6 +19,13 @@ const protect = async (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded.id) {
+            return res.status(401).json({
+                success: false,
+                message: "Not Authorized, invalid user token"
+            });
+        }
+
         req.user = await User.findById(decoded.id).select("-password");
         
         if (!req.user) {
@@ -43,7 +55,6 @@ const recruiterOnly = (req, res, next) => {
     }
 };
 
-// Yahan adminOnly add kiya hai:
 const adminOnly = (req, res, next) => {
     if (req.user && req.user.role === "admin") {
         next();
@@ -55,7 +66,6 @@ const adminOnly = (req, res, next) => {
     }
 };
 
-// Recruiter ya Admin dono ke liye
 const recruiterOrAdmin = (req, res, next) => {
     if (req.user && (req.user.role === "recruiter" || req.user.role === "admin")) {
         next();
