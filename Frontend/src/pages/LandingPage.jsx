@@ -12,7 +12,6 @@ function LandingPage() {
   ];
 
   const popularRoles = ['Frontend Developer', 'Backend Engineer', 'Product Designer', 'Data Analyst'];
-  const companies = ['TechNova', 'CodeSphere', 'PixelCraft', 'NorthStar'];
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const jobsSectionRef = useRef(null);
@@ -64,12 +63,6 @@ function LandingPage() {
     { label: 'Jobs Listed', value: '10k+' },
     { label: 'Active Recruiters', value: '2.5k+' },
     { label: 'Successful Matches', value: '98%' },
-  ];
-  
-  const howItWorks = [
-    { title: 'Search smarter', text: 'Find roles by title, company, or location in seconds.' },
-    { title: 'Apply instantly', text: 'Start your next move with a single click and a polished flow.' },
-    { title: 'Track progress', text: 'Stay updated while recruiters review your application.' },
   ];
 
   const focusJobsSection = () => {
@@ -218,54 +211,6 @@ function LandingPage() {
             <p className="mt-2 text-sm font-medium text-slate-500">{item.label}</p>
           </div>
         ))}
-      </section>
-
-      <section className="image-zoom-reveal section-shell rounded-[28px] bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)] sm:p-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-800">Top companies hiring now</h2>
-            <p className="mt-1 text-sm text-slate-500">Work with teams that value growth, innovation, and impact.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {companies.map((company) => (
-              <div key={company} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
-                {company}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="scroll-fade grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="section-shell rounded-[28px] bg-white p-6 shadow-sm border border-slate-200/60">
-          <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
-            <TrendingUp className="h-4 w-4" />
-            Why this platform stands out
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {howItWorks.map((step) => (
-              <div key={step.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <h3 className="text-lg font-semibold text-slate-800">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="section-shell rounded-[28px] bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] p-6 text-black shadow-md border border-white/20">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-black">Fast and polished</p>
-          <h3 className="mt-3 text-2xl font-semibold text-black">A front end that feels premium from the first click.</h3>
-          <p className="mt-3 text-sm leading-7 text-slate-900 font-medium">
-            The experience is designed to feel modern, confident, and effortless, with strong visuals and clear next steps for every user.
-          </p>
-          <Link
-            to="/register"
-            onClick={() => toast.success('Launching your next step')}
-            className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 font-semibold text-white transition hover:bg-slate-800 shadow-md"
-          >
-            Get started <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </section>
 
       <section className="image-zoom-reveal section-shell rounded-[28px] bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] p-6 text-black sm:p-8 shadow-xl border border-white/20">

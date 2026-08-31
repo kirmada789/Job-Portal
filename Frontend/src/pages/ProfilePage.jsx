@@ -46,11 +46,11 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        // Backend route: /api/seeker/profile
         const response = await api.get('/seeker/profile');
         const data = response.data.profile;
 
         if (isRecruiter) {
-          // Recruiter profile handling from backend User model data
           const recruiterUser = data?.userId || user;
           setFormData(prev => ({
             ...prev,
@@ -118,7 +118,7 @@ const ProfilePage = () => {
     setErrorMsg('');
   };
 
-  // Database Save Handler for General Details & Name update (Recruiter & Seeker both)
+  // Database Save Handler for General Details & Name update
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -136,7 +136,7 @@ const ProfilePage = () => {
         name: formData.name,
         phone: formData.phone,
         bio: formData.bio,
-        skills: formData.skills.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: formData.skills ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
         socials: {
           github: formData.github,
           portfolio: formData.portfolio,
@@ -145,6 +145,7 @@ const ProfilePage = () => {
         education: educations,
       };
 
+      // Backend route: PUT /api/seeker/profile
       const response = await api.put('/seeker/profile', updateData);
 
       const updatedUser = {
@@ -182,6 +183,7 @@ const ProfilePage = () => {
     uploadData.append('resume', file);
 
     try {
+      // Backend route: POST /api/seeker/resume
       const response = await api.post('/seeker/resume', uploadData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -218,6 +220,7 @@ const ProfilePage = () => {
   // API Delete Resume Handler
   const handleRemoveResume = async () => {
     try {
+      // Backend route: DELETE /api/seeker/resume
       await api.delete('/seeker/resume');
 
       setResumes([]);
@@ -249,7 +252,7 @@ const ProfilePage = () => {
         name: formData.name,
         phone: formData.phone,
         bio: formData.bio,
-        skills: formData.skills.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: formData.skills ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
         experience: updatedExperiences,
         education: educations,
         socials: { github: formData.github, portfolio: formData.portfolio }
@@ -276,7 +279,7 @@ const ProfilePage = () => {
         name: formData.name,
         phone: formData.phone,
         bio: formData.bio,
-        skills: formData.skills.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: formData.skills ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
         experience: updatedExperiences,
         education: educations,
         socials: { github: formData.github, portfolio: formData.portfolio }
@@ -305,7 +308,7 @@ const ProfilePage = () => {
         name: formData.name,
         phone: formData.phone,
         bio: formData.bio,
-        skills: formData.skills.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: formData.skills ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
         experience: experiences,
         education: updatedEducations,
         socials: { github: formData.github, portfolio: formData.portfolio }
@@ -332,7 +335,7 @@ const ProfilePage = () => {
         name: formData.name,
         phone: formData.phone,
         bio: formData.bio,
-        skills: formData.skills.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: formData.skills ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
         experience: experiences,
         education: updatedEducations,
         socials: { github: formData.github, portfolio: formData.portfolio }

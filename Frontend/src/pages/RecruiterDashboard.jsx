@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BriefcaseBusiness, Sparkles, Users, X, Edit2, Trash2, Search, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { BriefcaseBusiness, Sparkles, Users, X, Edit2, Trash2, Search, CheckCircle2, XCircle, Eye, Mail, Phone, GraduationCap, Briefcase } from 'lucide-react';
 import api from '../api/axios';
 
 function RecruiterDashboard() {
@@ -16,11 +16,11 @@ function RecruiterDashboard() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  // 1. Fetch Recruiter Jobs & All Applications for global stats
+  // 1. Fetch Recruiter's Own Jobs & Applications
   useEffect(() => {
     const fetchRecruiterData = async () => {
       try {
-        const jobsResponse = await api.get("/jobs/get-jobs");
+        const jobsResponse = await api.get("/jobs/recruiter-jobs");
         if (jobsResponse.data.success) {
           const backendJobs = jobsResponse.data.jobs.map((job) => ({
             id: job._id,
@@ -43,8 +43,14 @@ function RecruiterDashboard() {
               const jobApps = (appRes.data.applications || appRes.data.application || []).map((app) => ({
                 id: app._id,
                 jobId: app.job,
-                applicantName: app.application?.fullName || app.application?.name || app.user?.fullName || app.userId?.fullName || 'Candidate',
+                applicantName: app.application?.name || app.application?.fullName || app.user?.name || app.userId?.name || 'Candidate',
                 email: app.application?.email || app.user?.email || app.userId?.email || 'No email provided',
+                phone: app.phone || app.application?.phone || app.user?.phone || 'Not provided',
+                bio: app.bio || app.application?.bio || 'No bio provided',
+                skills: app.skills || app.application?.skills || [],
+                experience: app.experience || app.application?.experience || [],
+                education: app.education || app.application?.education || [],
+                resume: app.resume || app.application?.resume || '',
                 status: app.status || 'Pending'
               }));
               accumulatedApps = [...accumulatedApps, ...jobApps];
@@ -73,8 +79,14 @@ function RecruiterDashboard() {
         const formattedApps = appsData.map((app) => ({
           id: app._id,
           jobId: app.job,
-          applicantName: app.application?.fullName || app.application?.name || app.user?.fullName || app.userId?.fullName || 'Candidate',
+          applicantName: app.application?.name || app.application?.fullName || app.user?.name || app.userId?.name || 'Candidate',
           email: app.application?.email || app.user?.email || app.userId?.email || 'No email provided',
+          phone: app.phone || app.application?.phone || app.user?.phone || 'Not provided',
+          bio: app.bio || app.application?.bio || 'No bio provided',
+          skills: app.skills || app.application?.skills || [],
+          experience: app.experience || app.application?.experience || [],
+          education: app.education || app.application?.education || [],
+          resume: app.resume || app.application?.resume || '',
           status: app.status || 'Pending'
         }));
         setApplications(formattedApps);
@@ -344,65 +356,183 @@ function RecruiterDashboard() {
         </div>
       </div>
 
-      {/* Application Details Modal */}
+      {/* Ultra-Professional Application Details Modal with Soft Tint Backdrop */}
       {showAppModal && selectedApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl border border-slate-100">
-            <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-              <h2 className="text-2xl font-bold text-slate-800">Candidate Profile</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-indigo-950/20 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl rounded-[32px] bg-white shadow-2xl border border-slate-100 max-h-[92vh] flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="px-6 sm:px-8 py-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#3c47c8] to-[#9795f3] flex items-center justify-center text-white font-extrabold text-xl shadow-inner">
+                  {selectedApp.applicantName ? selectedApp.applicantName.charAt(0).toUpperCase() : 'C'}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold tracking-wide">{selectedApp.applicantName}</h2>
+                  <p className="text-xs text-indigo-200 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span> Candidate Dossier & Evaluation
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => {
                   setShowAppModal(false);
                   setSelectedAppId(null);
                 }}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                className="text-slate-300 hover:text-white p-2 rounded-xl hover:bg-white/10 transition cursor-pointer"
               >
-                <X size={22} />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Candidate Name</p>
-                  <p className="text-base font-bold text-slate-800 mt-1">{selectedApp.applicantName}</p>
+            {/* Modal Body Scrollable */}
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 bg-slate-50/50">
+              
+              {/* Contact Information Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+                    <Mail size={16} />
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
+                    <p className="text-xs font-semibold text-slate-800 truncate mt-0.5">{selectedApp.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
-                  <p className="text-base font-bold text-slate-800 mt-1">{selectedApp.email}</p>
+
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/70 shadow-sm flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 shrink-0">
+                    <Phone size={16} />
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</p>
+                    <p className="text-xs font-semibold text-slate-800 truncate mt-0.5">{selectedApp.phone || 'Not provided'}</p>
+                  </div>
                 </div>
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Current Application Status</p>
-                <span
-                  className={`inline-block rounded-full px-4 py-1.5 text-xs font-bold shadow-sm ${
-                    selectedApp.status === 'Rejected'
-                      ? 'bg-red-50 text-red-700 border border-red-200'
-                      : selectedApp.status === 'Shortlisted'
-                      ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                      : selectedApp.status === 'Selected'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : selectedApp.status === 'Viewed'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'bg-amber-50 text-amber-700 border border-amber-200'
-                  }`}
-                >
-                  {selectedApp.status || 'Pending'}
-                </span>
+
+              {/* Professional Bio */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-1.5">
+                <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
+                  Professional Bio / Summary
+                </p>
+                <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                  {selectedApp.bio || 'No professional introduction provided.'}
+                </p>
               </div>
+
+              {/* Work Experience */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-3">
+                <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <Briefcase size={14} /> Work Experience
+                </p>
+                {selectedApp.experience && selectedApp.experience.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedApp.experience.map((exp, idx) => (
+                      <div key={idx} className="relative pl-4 border-l-2 border-[#3c47c8] pb-2 last:pb-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                          <p className="text-xs font-bold text-slate-900">{exp.title} <span className="text-indigo-600 font-semibold">@ {exp.company}</span></p>
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md w-fit mt-1 sm:mt-0">{exp.duration}</span>
+                        </div>
+                        {exp.description && <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{exp.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No professional work experience listed.</p>
+                )}
+              </div>
+
+              {/* Education */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-3">
+                <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <GraduationCap size={14} /> Education History
+                </p>
+                {selectedApp.education && selectedApp.education.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedApp.education.map((edu, idx) => (
+                      <div key={idx} className="relative pl-4 border-l-2 border-emerald-500 pb-2 last:pb-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                          <p className="text-xs font-bold text-slate-900">{edu.degree}</p>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md w-fit mt-1 sm:mt-0">{edu.year}</span>
+                        </div>
+                        <p className="text-[11px] font-medium text-slate-500 mt-0.5">{edu.school}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No academic history listed.</p>
+                )}
+              </div>
+
+              {/* Skills & Tech Stack */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-2">
+                <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Skills & Tech Stack</p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {selectedApp.skills && selectedApp.skills.length > 0 ? (
+                    selectedApp.skills.map((skill, index) => (
+                      <span key={index} className="rounded-lg bg-indigo-50/80 border border-indigo-100 px-3 py-1 text-[11px] font-bold text-indigo-700">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">No specific skills listed</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Status & Resume Action Footer */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Application Pipeline Status</p>
+                  <span
+                    className={`inline-block rounded-full px-3.5 py-1 text-xs font-bold shadow-xs ${
+                      selectedApp.status === 'Rejected'
+                        ? 'bg-red-50 text-red-700 border border-red-200'
+                        : selectedApp.status === 'Shortlisted'
+                        ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                        : selectedApp.status === 'Selected'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : selectedApp.status === 'Viewed'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}
+                  >
+                    {selectedApp.status || 'Pending'}
+                  </span>
+                </div>
+
+                {selectedApp.resume ? (
+                  <a
+                    href={selectedApp.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto text-center rounded-xl bg-gradient-to-r from-[#3c47c8] to-[#9795f3] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:opacity-95 transition cursor-pointer"
+                  >
+                    View / Download Resume 📄
+                  </a>
+                ) : (
+                  <span className="text-xs font-bold text-red-500 bg-red-50 px-3 py-2 rounded-xl border border-red-100">
+                    Resume Not Available
+                  </span>
+                )}
+              </div>
+
             </div>
 
-            <div className="mt-8 flex gap-3">
+            {/* Modal Footer Close Button */}
+            <div className="px-6 sm:px-8 py-4 bg-white border-t border-slate-100 shrink-0">
               <button
                 onClick={() => {
                   setShowAppModal(false);
                   setSelectedAppId(null);
                 }}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-100 shadow-sm cursor-pointer"
+                className="w-full rounded-xl bg-slate-100 hover:bg-slate-200 py-3 font-bold text-xs text-slate-700 transition cursor-pointer"
               >
-                Close Profile
+                Close Candidate Dossier
               </button>
             </div>
+
           </div>
         </div>
       )}

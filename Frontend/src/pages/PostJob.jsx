@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Briefcase, Building2, MapPin, IndianRupee, FileText, Sparkles, ArrowLeft, CheckCircle2, Layers, Cpu, Award, Zap } from 'lucide-react';
 import api from '../api/axios';
-import Footer from './Footer';
-
 function PostJob() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -269,8 +267,7 @@ function PostJob() {
 
         </div>
       </div>
-
-      <Footer />
+      
     </div>
   );
 }

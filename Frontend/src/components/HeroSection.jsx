@@ -50,7 +50,7 @@ const HeroSection = ({ user: propUser }) => {
   return (
     <div className="min-h-screen bg-transparent font-sans overflow-x-hidden relative">
       
-      {/* Ultra slow and buttery-smooth transition styles for both text and image */}
+      {/* Ultra slow and buttery-smooth transition styles */}
       <style>{`
         .scroll-fade {
           opacity: 0;
@@ -63,7 +63,6 @@ const HeroSection = ({ user: propUser }) => {
           transform: translateY(0);
         }
 
-        /* Image ultra slow & smooth small-to-big zoom-in reveal */
         .image-zoom-reveal {
           opacity: 0;
           transform: scale(0.6) translateY(50px);
@@ -95,17 +94,17 @@ const HeroSection = ({ user: propUser }) => {
       ></div>
 
       <section id="hero" className="relative pt-12 sm:pt-16 lg:pt-12 pb-20 px-4 sm:px-6 lg:px-12 bg-transparent">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* Left Content */}
-          <div className="scroll-fade lg:col-span-7 space-y-6 z-10 text-center lg:text-left pr-0 lg:pr-8">
+          {/* Left Content - Demo site ki tarah mobile par bhi left-aligned rakha hai */}
+          <div className="scroll-fade md:col-span-7 space-y-6 z-10 text-left pr-0 md:pr-8">
             
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-[#0f172a] tracking-tight leading-[1.15]">
+            <h1 className="text-3xl sm:text-4xl lg:text-[56px] font-bold text-[#0f172a] tracking-tight leading-[1.15]">
               Your Next Role, Just <br className="hidden sm:inline" />
-              One Click <span className="inline-flex items-center justify-center bg-white text-[#1e293b] p-2 sm:p-2.5 rounded-2xl mx-2 align-middle shadow-md border border-slate-100"><FiZap className="w-5 h-5 sm:w-6 sm:h-6 text-[#2563eb]" /></span> Away
+              One Click <span className="inline-flex items-center justify-center bg-white text-[#1e293b] p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl mx-1 align-middle shadow-md border border-slate-100"><FiZap className="w-4 h-4 sm:w-6 sm:h-6 text-[#2563eb]" /></span> Away
             </h1>
 
-            <p className="text-base sm:text-lg text-[#475569] max-w-xl mx-auto lg:mx-0 font-normal">
+            <p className="text-sm sm:text-base lg:text-lg text-[#475569] max-w-xl font-normal">
               {userRole === 'recruiter' 
                 ? 'Post new job listings and manage applicant submissions smoothly.' 
                 : userRole === 'seeker' 
@@ -113,37 +112,34 @@ const HeroSection = ({ user: propUser }) => {
                 : 'Discover Jobs That Fit Your Goals'}
             </p>
 
-            {/* Role-Based Conditioned Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            {/* Role-Based Conditioned Action Buttons - Demo site ki tarah proper alignment */}
+            <div className="flex flex-row items-center justify-start gap-3 sm:gap-4 pt-2 flex-wrap">
               
-              {/* Case 1: Agar Recruiter logged in hai -> Sirf Post a Job dikhega */}
               {userRole === 'recruiter' ? (
                 <Link 
                   to="/post-job" 
-                  className="relative isolate overflow-hidden w-full sm:w-auto bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white font-semibold px-7 py-3.5 rounded-xl text-base shadow-md shadow-indigo-500/20 transition-all duration-300 before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
+                  className="relative isolate overflow-hidden bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white font-semibold px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base shadow-md shadow-indigo-500/20 transition-all duration-300 before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
                 >
                   <span className="relative z-10">Post a Job &gt;</span>
                 </Link>
               ) : userRole === 'seeker' ? (
-                /* Case 2: Agar Seeker logged in hai -> Sirf Find Your Dream Job dikhega */
                 <Link 
                   to="/seeker" 
-                  className="relative isolate overflow-hidden w-full sm:w-auto bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white font-semibold px-7 py-3.5 rounded-xl text-base shadow-md shadow-indigo-500/20 transition-all duration-300 before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
+                  className="relative isolate overflow-hidden bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white font-semibold px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base shadow-md shadow-indigo-500/20 transition-all duration-300 before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
                 >
                   <span className="relative z-10">Find Your Dream Job &gt;</span>
                 </Link>
               ) : (
-                /* Case 3: Agar Koi Logged-In nahi hai (Guest) -> Dono buttons dikhenge */
                 <>
                   <Link 
                     to="/seeker" 
-                    className="relative isolate overflow-hidden w-full sm:w-auto bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white font-semibold px-7 py-3.5 rounded-xl text-base shadow-md shadow-indigo-500/20 transition-all duration-300 before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
+                    className="relative isolate overflow-hidden bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white font-semibold px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base shadow-md shadow-indigo-500/20 transition-all duration-300 before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
                   >
                     <span className="relative z-10">Find Your Dream Job &gt;</span>
                   </Link>
                   <Link 
                     to="/post-job" 
-                    className="relative isolate overflow-hidden w-full sm:w-auto bg-white hover:text-white text-[#1e293b] border border-[#e2e8f0] font-medium px-7 py-3.5 rounded-xl text-base transition-all duration-300 shadow-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#d3c4f5] before:via-[#9795f3] before:to-[#3c47c8] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
+                    className="relative isolate overflow-hidden bg-white hover:text-white text-[#1e293b] border border-[#e2e8f0] font-medium px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base transition-all duration-300 shadow-sm before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#d3c4f5] before:via-[#9795f3] before:to-[#3c47c8] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 flex items-center justify-center gap-2"
                   >
                     <span className="relative z-10">Post a Job &gt;</span>
                   </Link>
@@ -154,24 +150,24 @@ const HeroSection = ({ user: propUser }) => {
 
             {/* Trusted Companies */}
             <div className="pt-8 space-y-3">
-              <p className="text-[12px] font-medium text-[#64748b] tracking-wider uppercase">
+              <p className="text-[11px] sm:text-[12px] font-medium text-[#64748b] tracking-wider uppercase">
                 Trusted by 10.000+ companies worldwide
               </p>
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-[#94a3b8] text-2xl">
+              <div className="flex flex-wrap items-center justify-start gap-4 sm:gap-6 text-[#94a3b8] text-xl sm:text-2xl">
                 <FaFigma className="hover:text-[#1e293b] transition cursor-pointer" />
                 <FaWordpress className="hover:text-[#1e293b] transition cursor-pointer" />
                 <FaMedium className="hover:text-[#1e293b] transition cursor-pointer" />
                 <FaSketch className="hover:text-[#1e293b] transition cursor-pointer" />
-                <div className="w-7 h-7 rounded-full bg-[#0f172a] text-white flex items-center justify-center text-xs font-bold">in</div>
-                <div className="w-7 h-7 rounded-full bg-[#fbbf24] text-[#0f172a] flex items-center justify-center text-xs font-bold">✨</div>
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#0f172a] text-white flex items-center justify-center text-xs font-bold">in</div>
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#fbbf24] text-[#0f172a] flex items-center justify-center text-xs font-bold">✨</div>
               </div>
             </div>
 
           </div>
 
-          {/* Right Side 3D Image with Ultra Slow Smooth Zoom Reveal */}
+          {/* Right Side 3D Image - 768px se chote screens par hidden */}
           <div 
-            className="image-zoom-reveal lg:col-span-5 relative flex justify-center items-center py-6"
+            className="image-zoom-reveal md:col-span-5 relative hidden md:flex justify-center items-center py-6"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >

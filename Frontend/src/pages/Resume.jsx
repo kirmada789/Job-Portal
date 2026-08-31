@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../utils/api'; // 👈 Sahi API instance import kiya
+import API from '../utils/api';
 
 const Resume = () => {
   const navigate = useNavigate();
@@ -25,31 +25,67 @@ const Resume = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // 🛡️ Recruiter check logic
+    const userString = localStorage.getItem('user');
+    const currentUser = userString ? JSON.parse(userString) : null;
+
+    if (!currentUser) {
+      alert("Please login first to upload your resume.");
+      navigate('/login');
+      return;
+    }
+
+    if (currentUser.role?.trim().toLowerCase() === 'recruiter') {
+      alert("Access Denied: You are logged in as a Recruiter. Please login as a Seeker to upload your resume.");
+      e.target.value = null; // Clear file input
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("resume", file);
 
-      // ✅ Ab yeh Render backend par request bhejega aur cookies attach karega
-      const response = await API.post("/seeker/resume", formData);
+      const response = await API.post("/seeker/resume", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      alert(response.data.message || "Resume uploaded successfully!");
+      alert(response.data.message || "Resume uploaded successfully and linked to your profile!");
     } catch (error) {
       console.error("Upload error:", error);
       if (error.response && error.response.status === 401) {
         alert("Please login first to upload your resume.");
         navigate('/login');
       } else {
-        alert(error.response?.data?.message || "Failed to upload resume");
+        alert(error.response?.data?.message || "Failed to upload resume. Please try again.");
       }
+    } finally {
+      e.target.value = null;
     }
   };
 
   const handleButtonClick = () => {
+    // Click hone se pehle bhi role check kar sakte hain taaki file dialog open hi na ho agar recruiter ho
+    const userString = localStorage.getItem('user');
+    const currentUser = userString ? JSON.parse(userString) : null;
+
+    if (!currentUser) {
+      alert("Please login first to upload your resume.");
+      navigate('/login');
+      return;
+    }
+
+    if (currentUser.role?.trim().toLowerCase() === 'recruiter') {
+      alert("Access Denied: You are logged in as a Recruiter. Please login as a Seeker to upload your resume.");
+      return;
+    }
+
     fileInputRef.current.click();
   };
 
   return (
-    <div style={{ paddingTop: "2rem" }}>
+    <div className="py-8">
       
       <style>{`
         .scroll-fade {
@@ -72,61 +108,34 @@ const Resume = () => {
         onChange={handleFileChange}
       />
 
-      <div className="scroll-fade" style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "3rem",
-        alignItems: "center",
-        background: "linear-gradient(to right, #fefefe, #f8fafc)",
-        borderRadius: "24px",
-        padding: "3rem",
-        boxShadow: "0 10px 35px rgba(15,23,42,0.05)",
-        border: "1px solid #e2e8f0"
-      }}>
-        <div>
-          <img className='ml-20'
+      <div className="scroll-fade grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center bg-gradient-to-r from-[#fefefe] to-[#f8fafc] rounded-3xl p-6 sm:p-10 lg:p-12 shadow-sm border border-slate-200">
+        
+        {/* Model Image - Hidden on mobile screens */}
+        <div className="hidden md:flex justify-center">
+          <img 
             src="/sir4.png"
             alt="Resume Review"
             loading="lazy"
-            style={{
-              width: "100%",
-              maxWidth: "500px",
-              transition: "transform 0.4s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.02)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-            }}
+            className="w-full max-w-[400px] object-contain transition-transform duration-300 hover:scale-[1.02]"
           />
         </div>
-        <div>
-          <h2 style={{ fontSize: "2.5rem", fontWeight: 700, color: "#0A2540" }}>
+
+        <div className="text-left space-y-4 sm:space-y-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold text-[#0A2540] leading-tight">
             Get a free professional<br />resume review
           </h2>
-          <p style={{ color: "#5E6D77", marginBottom: "2rem", fontSize: "1.05rem", lineHeight: 1.6 }}>
+          <p className="text-[#5E6D77] text-sm sm:text-base leading-relaxed">
             Upload your resume to see how it performs with recruiters and applicant tracking systems.
             Get a personalized score and expert feedback that's fast, free, and actionable.
           </p>
           <button
             onClick={handleButtonClick}
-            className="bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-black font-semibold border-none rounded-[10px] text-base cursor-pointer transition-all duration-300"
-            style={{
-              padding: "12px 32px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.02)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(60,71,200,0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
+            className="relative isolate overflow-hidden bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-slate-900 font-semibold px-7 py-3.5 rounded-xl text-base shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer flex items-center gap-2"
           >
-            Upload Your CV &rarr;
+            <span>Upload Your CV &rarr;</span>
           </button>
         </div>
+
       </div>
     </div>
   );

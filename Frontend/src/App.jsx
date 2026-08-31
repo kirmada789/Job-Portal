@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword'; 
 import AdminDashboard from './pages/AdminDashboard';
@@ -38,6 +39,21 @@ function ProtectedRoute({ children, allowedRole }) {
   return children;
 }
 
+// 🛡️ PublicOnlyRoute: Agar user already logged-in hai toh login/register pages access nahi karne dega
+function PublicOnlyRoute({ children }) {
+  const userString = localStorage.getItem('user');
+  const currentUser = userString ? JSON.parse(userString) : null;
+
+  if (currentUser) {
+    const role = currentUser.role?.trim().toLowerCase();
+    if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (role === 'recruiter') return <Navigate to="/recruiter" replace />;
+    return <Navigate to="/seeker" replace />;
+  }
+
+  return children;
+}
+
 function App() {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
@@ -47,7 +63,7 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const isStandaloneRoute = location.pathname !== '/' && (['/admin', '/recruiter', '/seeker', '/tracker', '/profile', '/login', '/register', '/post-job'].includes(location.pathname) || location.pathname.startsWith('/reset-password'));
+  const isStandaloneRoute = location.pathname !== '/' && (['/admin', '/admin/dashboard', '/recruiter', '/seeker', '/tracker', '/profile', '/login', '/admin-login', '/register', '/post-job'].includes(location.pathname) || location.pathname.startsWith('/reset-password'));
 
   useEffect(() => {
     if (location.pathname === '/') {
@@ -75,7 +91,8 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col justify-between bg-transparent text-slate-800">
       <div>
-        <Navbar user={user} onLogout={handleLogout} />
+        {/* 🛡️ Admin Dashboard par hone par upar wala Navbar hide ho jayega */}
+        {location.pathname !== '/admin/dashboard' && <Navbar user={user} onLogout={handleLogout} />}
 
         {!isStandaloneRoute && (
           <>
@@ -88,22 +105,23 @@ function App() {
           </>
         )}
 
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 page-enter">
+        <div className={location.pathname === '/admin/dashboard' ? 'w-full p-0 m-0' : 'mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 page-enter'}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<Navigate to="/" replace />} />
             
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/register" element={<Register onLogin={handleLogin} />} />
+            {/* 🛡️ Public Only Routes (Wrapped to prevent access if already logged in) */}
+            <Route path="/login" element={<PublicOnlyRoute><Login onLogin={handleLogin} /></PublicOnlyRoute>} />
+            <Route path="/admin-login" element={<PublicOnlyRoute><AdminLogin /></PublicOnlyRoute>} />
+            <Route path="/register" element={<PublicOnlyRoute><Register onLogin={handleLogin} /></PublicOnlyRoute>} />
             
             <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-            <Route path="/admin" element={<ProtectedRoute allowedRole="Admin"><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="Admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/recruiter" element={<ProtectedRoute allowedRole="Recruiter"><RecruiterDashboard /></ProtectedRoute>} />
             
             <Route path="/post-job" element={<ProtectedRoute allowedRole="Recruiter"><PostJob /></ProtectedRoute>} />
             
-            {/* Seeker route ko public kar diya gaya hai taaki bina login ke bhi jobs explore ho sakein */}
             <Route path="/seeker" element={<SeekerDashboard />} />
             
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
@@ -122,7 +140,8 @@ function App() {
         )}
       </div>
 
-      <Footer />
+      {/* 👈 Global Footer (Admin Dashboard ko chhod kar) */}
+      {location.pathname !== '/admin/dashboard' && <Footer />}
     </div>
   );
 }

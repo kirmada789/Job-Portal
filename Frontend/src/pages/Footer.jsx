@@ -6,10 +6,6 @@ import {
   Phone, 
   Mail, 
   Send, 
-  Apple, 
-  Play, 
-  Globe, 
-  DollarSign, 
   Heart 
 } from 'lucide-react';
 
@@ -88,14 +84,14 @@ function Footer() {
                   placeholder="Your email address" 
                   className="w-full bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
                 />
-                <button className="bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition shadow-md">
+                <button className="bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition shadow-md cursor-pointer">
                   <Send className="h-4 w-4" />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Categories */}
+          {/* Column 2: Browse Jobs */}
           <div>
             <h3 className="text-slate-900 font-bold text-base mb-4 tracking-wide">Browse Jobs</h3>
             <ul className="space-y-2.5 text-sm font-medium text-slate-600">
@@ -107,18 +103,18 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Company */}
+          {/* Column 3: Recruiter Hub */}
           <div>
-            <h3 className="text-slate-900 font-bold text-base mb-4 tracking-wide">Company</h3>
+            <h3 className="text-slate-900 font-bold text-base mb-4 tracking-wide">Recruiter Hub</h3>
             <ul className="space-y-2.5 text-sm font-medium text-slate-600">
-              <li><Link to="/" className="hover:text-[#3c47c8] transition">About Aivon Tech</Link></li>
-              <li><Link to="/" className="hover:text-[#3c47c8] transition">Careers</Link></li>
-              <li><Link to="/" className="hover:text-[#3c47c8] transition">Success Stories</Link></li>
-              <li><Link to="/" className="hover:text-[#3c47c8] transition">Partners</Link></li>
+              <li><Link to="/recruiter" className="hover:text-[#3c47c8] transition">Recruiter Dashboard</Link></li>
+              <li><Link to="/post-job" className="hover:text-[#3c47c8] transition">Post New Job</Link></li>
+              <li><Link to="/recruiter" className="hover:text-[#3c47c8] transition">Applicant Submissions</Link></li>
+              <li><Link to="/" className="hover:text-[#3c47c8] transition">Hiring Solutions</Link></li>
             </ul>
           </div>
 
-          {/* Column 4: Support */}
+          {/* Column 4: Resources */}
           <div>
             <h3 className="text-slate-900 font-bold text-base mb-4 tracking-wide">Resources</h3>
             <ul className="space-y-2.5 text-sm font-medium text-slate-600">

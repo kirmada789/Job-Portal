@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Briefcase, ChevronDown } from 'lucide-react';
-import API from '../utils/api'; // 👈 Apne api.js ka sahi path check kar lena (jaise ../services/api ya ./api)
+import { User, Mail, Lock, Briefcase, ChevronDown, ShieldCheck } from 'lucide-react';
+import API from '../utils/api'; 
 import { GoogleLogin } from '@react-oauth/google';
 
 function Register({ onLogin }) {
@@ -11,8 +11,11 @@ function Register({ onLogin }) {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'Seeker', // By default 'Seeker'
+    role: 'Seeker', 
   });
+
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -51,15 +54,33 @@ function Register({ onLogin }) {
         role: formData.role.toLowerCase()
       };
 
-      // ✅ Ab yeh Netlify env variable ya Render URL use karega
       const response = await API.post("/auth/signup", payload);
 
       if (response.data.success) {
-        alert("Registered successfully! Please login with your credentials.");
-        navigate('/login');
+        alert("OTP sent to your email! Please check your inbox.");
+        setIsOtpSent(true); 
       }
     } catch (error) {
       alert(error.response?.data?.message || 'Something went wrong during registration.');
+    }
+  };
+
+  // 2. OTP Verification Handler (Ab user ko login page par bhejega)
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await API.post("/auth/verify-otp", {
+        email: formData.email,
+        otp: otp
+      });
+
+      if (response.data.success) {
+        alert("Email verified successfully! Please login with your credentials.");
+        navigate('/login'); // 👈 Ab user direct login page par redirect hoga
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Invalid or expired OTP.');
     }
   };
 
@@ -103,149 +124,196 @@ function Register({ onLogin }) {
             Build your profile, find relevant roles, or manage hiring pipelines from one place.
           </p>
           <div className="mt-8 grid gap-3 text-sm sm:grid-cols-2">
-            <div className="rounded-2xl border border-black/15 bg-white/20 p-3 text-black">Secure sign-up</div>
+            <div className="rounded-2xl border border-black/15 bg-white/20 p-3 text-black">Secure OTP Verification</div>
             <div className="rounded-2xl border border-black/15 bg-white/20 p-3 text-black">Role-based access</div>
           </div>
         </div>
 
         <div className="image-zoom-reveal glass-card p-6 sm:p-8 rounded-[28px] bg-white shadow-xl border border-slate-100">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-slate-800">Create Account</h2>
-            <p className="mt-2 text-sm text-slate-500">Join JobPortal as a seeker or recruiter</p>
-          </div>
+          
+          {!isOtpSent ? (
+            <>
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-slate-800">Create Account</h2>
+                <p className="mt-2 text-sm text-slate-500">Join JobPortal as a seeker or recruiter</p>
+              </div>
 
-          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Full Name</label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <User className="h-5 w-5 text-slate-400" />
+              <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Full Name</label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <User className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="Your name"
+                      required
+                      className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
+                    />
+                  </div>
                 </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Email Address</label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Mail className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="you@example.com"
+                      required
+                      className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
+                      <Briefcase className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-10 text-sm outline-none ring-0 transition hover:border-[#9795f3] focus:border-[#3c47c8] focus:ring-2 focus:ring-[#9795f3]/30 text-slate-800 cursor-pointer"
+                    >
+                      <option value="Seeker">Job Seeker</option>
+                      <option value="Recruiter">Recruiter</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">
+                      <ChevronDown className="h-4 w-4" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Lock className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      required
+                      className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Confirm Password</label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Lock className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      required
+                      className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="relative isolate overflow-hidden flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] px-4 py-2.5 font-semibold text-white transition-all duration-300 shadow-md before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10 cursor-pointer"
+                >
+                  <span className="relative z-10">Register & Send OTP</span>
+                </button>
+
+                <div className="mt-4 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        const token = credentialResponse.credential;
+                        const response = await API.post("/auth/google", {
+                          token: token,
+                          role: formData.role.toLowerCase()
+                        });
+                        if (response.data.success) {
+                          onLogin(response.data.user || response.data);
+                          alert("Google Registration Successful!");
+                          const role = (response.data.role || formData.role).toLowerCase();
+                          navigate(role === 'recruiter' ? '/recruiter' : '/seeker');
+                        }
+                      } catch (error) {
+                        alert(error.response?.data?.message || 'Google Auth failed.');
+                      }
+                    }}
+                    onError={() => alert('Google Sign-In failed.')}
+                  />
+                </div>
+              </form>
+
+              <div className="mt-6 text-center text-sm text-slate-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-semibold bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] bg-clip-text text-transparent hover:underline">
+                  Login here
+                </Link>
+              </div>
+            </>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-6 py-6">
+              <div className="text-center">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-3 shadow-inner">
+                  <ShieldCheck className="h-6 w-6" />
+                </span>
+                <h2 className="text-2xl font-bold text-slate-800">Verify Your Email</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  We have sent a 6-digit verification code to <span className="font-semibold text-slate-700">{formData.email}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700 text-center">Enter 6-Digit OTP</label>
                 <input
                   type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  placeholder="Your name"
+                  maxLength="6"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="123456"
                   required
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
+                  className="w-full text-center tracking-[0.5em] text-2xl font-bold rounded-xl border border-slate-300 bg-slate-50 py-3 px-3 outline-none transition focus:border-blue-500 text-slate-800"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Email Address</label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Mail className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
-                />
-              </div>
-            </div>
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] px-4 py-3 font-semibold text-white transition-all duration-300 shadow-md hover:opacity-90 cursor-pointer"
+              >
+                Verify & Proceed to Login
+              </button>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
-                  <Briefcase className="h-5 w-5 text-slate-400" />
-                </div>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-10 text-sm outline-none ring-0 transition hover:border-[#9795f3] focus:border-[#3c47c8] focus:ring-2 focus:ring-[#9795f3]/30 text-slate-800 cursor-pointer"
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setIsOtpSent(false)}
+                  className="text-xs text-indigo-600 hover:underline font-medium cursor-pointer"
                 >
-                  <option value="Seeker">Job Seeker</option>
-                  <option value="Recruiter">Recruiter</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">
-                  <ChevronDown className="h-4 w-4" />
-                </div>
+                  ← Back to Registration form
+                </button>
               </div>
-            </div>
+            </form>
+          )}
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Confirm Password</label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 text-slate-800"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="relative isolate overflow-hidden flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] px-4 py-2.5 font-semibold text-white transition-all duration-300 shadow-md before:absolute before:inset-0 before:bg-[#0a2540] before:opacity-0 before:transition-opacity before:duration-400 before:ease-in-out hover:before:opacity-100 before:-z-10"
-            >
-              <span className="relative z-10">Register</span>
-            </button>
-
-            <div className="mt-4 flex justify-center">
-              <GoogleLogin
-                onSuccess={async (credentialResponse) => {
-                  try {
-                    const token = credentialResponse.credential;
-                    // ✅ Google Auth bhi ab API instance use karega
-                    const response = await API.post("/auth/google", {
-                      token: token,
-                      role: formData.role.toLowerCase()
-                    });
-                    if (response.data.success) {
-                      onLogin(response.data.user || response.data);
-                      alert("Google Registration Successful!");
-                      const role = (response.data.role || formData.role).toLowerCase();
-                      navigate(role === 'recruiter' ? '/recruiter' : '/seeker');
-                    }
-                  } catch (error) {
-                    alert(error.response?.data?.message || 'Google Auth failed.');
-                  }
-                }}
-                onError={() => alert('Google Sign-In failed.')}
-              />
-            </div>
-          </form>
-
-          <div className="mt-6 text-center text-sm text-slate-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-semibold bg-gradient-to-r from-[#d3c4f5] via-[#9795f3] to-[#3c47c8] bg-clip-text text-transparent hover:underline">
-              Login here
-            </Link>
-          </div>
         </div>
       </div>
     </div>
