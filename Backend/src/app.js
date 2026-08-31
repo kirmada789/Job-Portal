@@ -12,15 +12,24 @@ const adminRoutes = require("./routes/adminRoutes");
 const cors = require("cors");
 const app = express();
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://frontend-2fbbiiuld-skillhub0260-6584.vercel.app",
+    "https://frontend-ma5e338m4-skillhub0260-6584.vercel.app"
+];
+
 app.use(cors({
-    origin: [
-        "https://theejobportal.netlify.app", 
-        "https://frontend-ks0lfo1vr-skillhub0260-6584.vercel.app", // 👈 Yahan daal diya tumhara exact Vercel link
-        "http://localhost:5173", 
-        "http://localhost:3000"
-    ],
-    credentials: true, // Cookies (JWT) ke liye zaroori hai
-    allowedHeaders: ["Content-Type", "Authorization"] // Bearer token header allow karne ke liye
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+            callback(null, true);
+            return;
+        }
+        callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 
 app.use(session({

@@ -325,8 +325,7 @@ async function forgotPassword(req, res) {
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
 
-        // 👈 Yahan Netlify URL ki jagah Vercel URL ya environment variable kar diya hai
-        const frontendUrl = process.env.FRONTEND_URL || "https://frontend-ks0lfo1vr-skillhub0260-6584.vercel.app";
+        const frontendUrl = process.env.FRONTEND_URL || "https://frontend-ma5e338m4-skillhub0260-6584.vercel.app";
         const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
         const message = `You are receiving this email because you have requested a password reset.\n\nPlease make a Put request to:\n\n${resetUrl}`;
 
